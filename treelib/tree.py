@@ -237,6 +237,31 @@ class Tree(object):
                 if tree.identifier != self._identifier:
                     new_node.clone_pointers(tree.identifier, self._identifier)
 
+    @classmethod
+    def from_json(cls, raw: Union[str, bytes, bytearray]):
+        """
+        Load tree from exported JSON.
+        """
+        tree = cls()
+        json_parsed = json.loads(raw)
+
+        def _append_node(subtree, parent_id=None):
+            for tag, node_info in subtree.items():
+                node_id = node_info.get("id") or None
+                node_data = node_info.get("data") or None
+
+                node = tree.create_node(tag=tag, identifier=node_id, parent=parent_id, data=node_data)
+
+                if isinstance(node_info, dict):
+                    for child in node_info.get("children", []):
+                        if isinstance(child, dict):
+                            _append_node(child, parent_id=node.identifier)
+                        else:
+                            tree.create_node(tag=str(child), parent=node.identifier)
+
+        _append_node(json_parsed)
+        return tree
+
     def _clone(
         self,
         identifier: Optional[str] = None,
@@ -1955,30 +1980,45 @@ class Tree(object):
         sort: bool = True,
         reverse: bool = False,
         with_data: bool = False,
+        with_identifier: bool = False,
     ) -> Union[str, Dict[str, Any]]:
         """Transform the whole tree into a dict."""
 
         nid = self.root if (nid is None) else nid
         ntag = self[nid].tag
-        tree_dict = {ntag: {"children": []}}
+        node = self[nid]
+
+        successors = node.successors(self._identifier) if node.expanded else []
+        queue = [self[i] for i in successors]
+        if sort and queue:
+            queue.sort(key=key or (lambda x: x), reverse=reverse)
+
+        children = [
+            self.to_dict(
+                e.identifier,
+                key=key,
+                sort=sort,
+                reverse=reverse,
+                with_data=with_data,
+                with_identifier=with_identifier,
+            )
+            for e in queue
+        ]
+
+        if not children and not with_data and not with_identifier:
+            return ntag
+
+        node_dict = {}
+        if with_identifier:
+            node_dict["id"] = node.identifier
         if with_data:
-            tree_dict[ntag]["data"] = self[nid].data
+            node_dict["data"] = node.data
+        if children:
+            node_dict["children"] = children
 
-        if self[nid].expanded:
-            queue = [self[i] for i in self[nid].successors(self._identifier)]
-            key = (lambda x: x) if (key is None) else key
-            if sort:
-                queue.sort(key=key, reverse=reverse)
+        return {ntag: node_dict}
 
-            for elem in queue:
-                tree_dict[ntag]["children"].append(
-                    self.to_dict(elem.identifier, with_data=with_data, sort=sort, reverse=reverse)
-                )
-            if len(tree_dict[ntag]["children"]) == 0:
-                tree_dict = self[nid].tag if not with_data else {ntag: {"data": self[nid].data}}
-            return tree_dict
-
-    def to_json(self, with_data: bool = False, sort: bool = True, reverse: bool = False):
+    def to_json(self, with_data: bool = False, with_identifier=False, sort: bool = True, reverse: bool = False):
         """
         Export the tree structure as a JSON string.
 
@@ -2064,7 +2104,9 @@ class Tree(object):
             in node.data must be JSON-serializable (no functions, custom classes
             without __dict__, etc.).
         """
-        return json.dumps(self.to_dict(with_data=with_data, sort=sort, reverse=reverse))
+        return json.dumps(
+            self.to_dict(with_data=with_data, with_identifier=with_identifier, sort=sort, reverse=reverse)
+        )
 
     def to_graphviz(
         self,
