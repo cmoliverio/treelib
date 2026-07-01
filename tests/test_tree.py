@@ -486,6 +486,55 @@ class TreeCase(unittest.TestCase):
         self.tree.to_json()
         self.tree.to_json(True)
 
+    def test_from_json_structure(self):
+        t = Tree()
+        r = t.create_node("Root")
+        c1 = t.create_node("Child1", parent=r)
+        c2 = t.create_node("Child2", parent=r)
+
+        restored = Tree.from_json(t.to_json())
+
+        self.assertEqual(restored.size(), t.size())
+        self.assertEqual(restored.get_node(restored.root).tag, "Root")
+        self.assertEqual({c.tag for c in restored.children(restored.root)}, {"Child1", "Child2"})
+        self.assertEqual(t.to_json(), restored.to_json())
+
+    def test_from_json_with_data(self):
+        t = Tree()
+        r = t.create_node(tag="root", data={"val": 42})
+        t.create_node("child1", parent=r, data=None)
+        t.create_node("child2", parent=r, data={"name": "Christian"})
+
+        nd = Tree.from_json(t.to_json(with_data=False))
+
+        self.assertEqual(nd.get_node(nd.root).data, None)
+        self.assertEqual(nd.children(nd.root)[0].data, None)
+        self.assertEqual(nd.children(nd.root)[1].data, None)
+
+        wd = Tree.from_json(t.to_json(with_data=True))
+
+        self.assertEqual(wd.get_node(wd.root).data, {"val": 42})
+        self.assertEqual(wd.children(wd.root)[0].data, None)
+        self.assertEqual(wd.children(wd.root)[1].data, {"name": "Christian"})
+
+    def test_from_json_with_identifier(self):
+        t = Tree()
+        r = t.create_node(identifier="root")
+        c1 = t.create_node("child1", identifier="c1", parent=r)
+        c2 = t.create_node("child2", identifier="c2", parent=r)
+
+        ni = Tree.from_json(t.to_json(with_identifier=False))
+
+        self.assertNotEqual(ni.root, t.root)
+        self.assertNotEqual(ni.children(ni.root)[0].identifier, c1.identifier)
+        self.assertNotEqual(ni.children(ni.root)[1].identifier, c2.identifier)
+
+        wi = Tree.from_json(t.to_json(with_identifier=True))
+
+        self.assertEqual(wi.root, t.root)
+        self.assertEqual(wi.children(wi.root)[0].identifier, c1.identifier)
+        self.assertEqual(wi.children(wi.root)[1].identifier, c2.identifier)
+
     def test_siblings(self):
         self.assertEqual(len(self.tree.siblings("hárry")) == 0, True)
         self.assertEqual(self.tree.siblings("jane")[0].identifier == "bill", True)
