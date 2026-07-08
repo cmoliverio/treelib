@@ -339,7 +339,7 @@ def demonstrate_tree_transformations():
                 nodes_to_remove.append(node_id)
 
         for node_id in nodes_to_remove:
-            if pruned.contains(node_id):  # Check if node still exists
+            if node_id in pruned:  # Check if node still exists
                 pruned.remove_node(node_id)
 
         return pruned

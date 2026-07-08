@@ -143,7 +143,7 @@ class TreeEdgeCasesTestCase(unittest.TestCase):
         # Test basic operations work
         self.assertEqual(len(unicode_tree), 5)
         self.assertEqual(unicode_tree.root, "café")
-        self.assertTrue(unicode_tree.contains("中文_id"))
+        self.assertTrue("中文_id" in unicode_tree)
         self.assertTrue(unicode_tree.is_ancestor("café", "ελληνικά"))
 
         # Test node access
@@ -304,7 +304,7 @@ class TreeEdgeCasesTestCase(unittest.TestCase):
             try:
                 special_tree.create_node(f"Node {special_id}", special_id, parent="root")
                 # If creation succeeds, test basic operations
-                self.assertTrue(special_tree.contains(special_id))
+                self.assertTrue(special_id in special_tree)
                 self.assertEqual(special_tree.parent(special_id).identifier, "root")
             except Exception:
                 # Some special characters might not be supported, which is fine

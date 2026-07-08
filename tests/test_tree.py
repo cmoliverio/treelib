@@ -108,11 +108,10 @@ class TreeCase(unittest.TestCase):
         self.assertEqual(len(self.tree.all_nodes()), 5)
         self.assertEqual(self.tree.size(), 5)
         self.assertEqual(self.tree.get_node("jane").tag, "Jane")
-        self.assertEqual(self.tree.contains("jane"), True)
         self.assertEqual("jane" in self.tree, True)
-        self.assertEqual(self.tree.contains("alien"), False)
+        self.assertEqual("alien" in self.tree, False)
         self.tree.create_node("Alien", "alien", parent="jane")
-        self.assertEqual(self.tree.contains("alien"), True)
+        self.assertEqual("alien" in self.tree, True)
         self.tree.remove_node("alien")
 
     def test_getitem(self):
@@ -543,7 +542,7 @@ Hárry
         if sys.version_info[0] < 3:
             reload(sys)  # noqa: F821
             sys.setdefaultencoding("utf-8")
-        sys.stdout = open(os.devnull, "w")  # stops from printing to console
+        sys.stdout = open(os.devnull, "w", encoding="utf-8")  # stops from printing to console
 
         try:
             self.tree.show()
@@ -1138,8 +1137,8 @@ Hárry
     def test_tree_queries_comprehensive(self):
         """Test various tree query methods"""
         # Test contains
-        self.assertTrue(self.tree.contains("hárry"))
-        self.assertFalse(self.tree.contains("nonexistent"))
+        self.assertTrue("hárry" in self.tree)
+        self.assertFalse("nonexistent" in self.tree)
 
         # Test get_node
         node = self.tree.get_node("hárry")

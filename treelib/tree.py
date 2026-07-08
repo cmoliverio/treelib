@@ -629,7 +629,7 @@ class Tree(object):
                 raise MultipleRootError("A tree takes one root merely.")
             else:
                 self.root = node.identifier
-        elif not self.contains(pid):
+        elif not pid in self:
             raise NodeIDAbsentError("Parent node '%s' " "is not in the tree" % pid)
 
         pid = cast(str, pid)
@@ -728,7 +728,7 @@ class Tree(object):
                 if tree.ancestor("node", level=0) == "root":
                     print("Node is in main hierarchy")
         """
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
 
         descendant = self[nid]
@@ -807,17 +807,11 @@ class Tree(object):
 
         Example:
             Checking node existence::
-
-                # Explicit method call
-                if tree.contains("user123"):
-                    print("User node exists")
-
-                # Equivalent using 'in' operator
                 if "user123" in tree:
                     print("User node exists")
 
                 # Use before operations
-                if tree.contains("node_id"):
+                if "user123" in tree:
                     tree.move_node("node_id", "new_parent")
         """
         return True if nid in self._nodes else False
@@ -921,7 +915,7 @@ class Tree(object):
                 nid = node
             else:
                 nid = node.identifier
-            if not self.contains(nid):
+            if not nid in self:
                 raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
             ret = self.level(nid)
         return ret
@@ -1029,7 +1023,7 @@ class Tree(object):
             memory efficiency is important.
         """
         nid = cast(str, self.root if nid is None else nid)
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
 
         filter = (lambda x: True) if (filter is None) else filter
@@ -1145,7 +1139,7 @@ class Tree(object):
                 if user_node and user_node.data.active:
                     process_active_user(user_node)
         """
-        if nid is None or not self.contains(nid):
+        if nid is None or not nid in self:
             return None
         return self._nodes[nid]
 
@@ -1184,7 +1178,7 @@ class Tree(object):
         """
         if nid is None:
             raise OSError("First parameter can't be None")
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
 
         try:
@@ -1296,7 +1290,7 @@ class Tree(object):
                 # Useful for flattening hierarchies
                 middle_managers = ["mgr1", "mgr2", "mgr3"]
                 for mgr in middle_managers:
-                    if tree.contains(mgr):
+                    if mgr in tree:
                         tree.link_past_node(mgr)
 
                 # Cannot link past root
@@ -1305,7 +1299,7 @@ class Tree(object):
                 except LinkPastRootNodeError:
                     print("Cannot link past root node")
         """
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
         if self.root == nid:
             raise LinkPastRootNodeError("Cannot link past the root node, " "delete it with remove_node()")
@@ -1359,7 +1353,7 @@ class Tree(object):
                 for emp in employees:
                     tree.move_node(emp, "new_manager")
         """
-        if not self.contains(source) or not self.contains(destination):
+        if not source in self or not destination in self:
             raise NodeIDAbsentError
         elif self.is_ancestor(source, destination):
             raise LoopError
@@ -1483,11 +1477,11 @@ class Tree(object):
                 if parent and hasattr(parent.data, 'department'):
                     print(f"Department: {parent.data.department}")
         """
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
 
         pid = self[nid].predecessor(self._identifier)
-        if pid is None or not self.contains(pid):
+        if pid is None or not pid in self:
             return None
 
         return self[pid]
@@ -1546,7 +1540,7 @@ class Tree(object):
         if nid is None:
             raise ValueError('Must define "nid" under which new tree is pasted.')
 
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
 
         set_joint = set(new_tree._nodes) & set(self._nodes)  # joint keys
@@ -1603,7 +1597,7 @@ class Tree(object):
         """Remove a node indicated by 'identifier' with all its successors.
         Return the number of removed nodes.
         """
-        if not self.contains(identifier):
+        if not identifier in self:
             raise NodeIDAbsentError("Node '%s' " "is not in the tree" % identifier)
 
         parent = self[identifier].predecessor(self._identifier)
@@ -1650,7 +1644,7 @@ class Tree(object):
         if nid is None:
             return st
 
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
         st.root = nid
 
@@ -1680,7 +1674,7 @@ class Tree(object):
         if nid is None:
             return
 
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
 
         filter = (lambda x: True) if (filter is None) else filter
@@ -1897,7 +1891,7 @@ class Tree(object):
         if nid is None:
             return st
 
-        if not self.contains(nid):
+        if not nid in self:
             raise NodeIDAbsentError("Node '%s' is not in the tree" % nid)
 
         st.root = nid
