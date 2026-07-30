@@ -520,7 +520,7 @@ class TreeCase(unittest.TestCase):
         self.assertEqual(nd.children(nd.root)[4].data, None)
         self.assertEqual(nd.children(nd.root)[5].data, None)
         self.assertEqual(nd.children(nd.root)[6].data, None)
-        
+
         wd = Tree.from_json(t.to_json(with_data=True))
 
         self.assertEqual(wd.get_node(wd.root).data, {"val": 42})
