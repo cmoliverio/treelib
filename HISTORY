@@ -1,5 +1,8 @@
 # History
 
+Jul 30, 2026
+Added tests for basic data and more falsy data values.
+
 Jul 25, 2026
 from_json() no longer collapses falsy data values (0, False, "") to None.
 
